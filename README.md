@@ -42,5 +42,5 @@ Developing a model to determine whether or not NBA players are overpaid or under
 python3 main.py #On Windows: python main.py
 ```
 
-#Python version
+# Python version
 Make sure you use python version 3.9.13
