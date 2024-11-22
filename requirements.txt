@@ -8,5 +8,11 @@ scipy==1.11.3
 statsmodels==0.14.0
 
 # JupyterLab for running notebooks
-jupyterlab==4.0.6
-jupyter-server==2.7.3
+jupyterlab==4.2.2
+jupyter-server==2.11.2
+
+# Optional for exposing local Jupyter to the internet
+pyngrok==7.2.1
+
+# Optional for notebook diffing and version control
+nbdime==3.1.1
