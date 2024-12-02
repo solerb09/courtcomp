@@ -6,6 +6,8 @@ from sklearn.metrics import mean_absolute_error, r2_score
 from sklearn.ensemble import RandomForestRegressor
 import numpy as np
 import matplotlib.pyplot as plt
+from matplotlib.offsetbox import OffsetImage, AnnotationBbox
+import os
 
 # Load datasets
 stats = pd.read_csv('2023_nba_player_stats_with_advanced.csv')
@@ -38,7 +40,8 @@ merged_df.dropna(inplace=True)
 
 # Feature engineering
 merged_df["PTS_per_Min"] = merged_df["PTS"] / merged_df["Min"]
-merged_df["Efficient_Score"] = merged_df["PTS"] * merged_df["FG%"]
+merged_df["eFG%"] = (merged_df["FG%"] + 0.5 * merged_df["3P%"]) / merged_df["FGA"]
+merged_df["Efficient_Score"] = merged_df["PTS"] * merged_df["eFG%"]
 merged_df["Efficient_Score_Normalized"] = merged_df["Efficient_Score"] / merged_df["Min"]
 merged_df["Weighted_Efficiency"] = 0.7 * merged_df["Efficient_Score_Normalized"] + 0.3 * merged_df["PTS"]
 
@@ -87,6 +90,9 @@ merged_df["Predicted_Salary"] = (merged_df["Predicted_%Cap"] / 100) * salary_cap
 
 # Calculate salary difference (overpaid or underpaid)
 merged_df["Value_Difference"] = merged_df["Salary"] - merged_df["Predicted_Salary"]
+# Calculate percentage difference
+merged_df["Percentage_Difference"] = ((merged_df["Salary"] - merged_df["Predicted_Salary"]) / merged_df["Salary"]) * 100
+
 
 # Remove duplicate player names (if any)
 merged_df = merged_df.drop_duplicates(subset=["Player"], keep="first")
@@ -101,7 +107,12 @@ most_underpaid = underpaid.iloc[0] if not underpaid.empty else None
 # Display All Players Stats
 print("All Players Stats:\n")
 for index, row in merged_df.iterrows():
-    player_info = f"{row['Player']} | Age: {row['Age']} | Salary: {row['Salary']} | Predicted Salary: {row['Predicted_Salary']:.2f} | Value Difference: {row['Value_Difference']:.2f}  Actual %Cap: {row['%Cap']:.2f} | Predicted %Cap: {row['Predicted_%Cap']:.2f} | Value Difference: {row['Value_Difference']:.2f}"
+    player_info = (
+    f"{row['Player']} | Age: {row['Age']} | Salary: {row['Salary']} | "
+    f"Predicted Salary: {row['Predicted_Salary']:.2f} | Value Difference: {row['Value_Difference']:.2f} | "
+    f"Actual %Cap: {row['%Cap']:.2f} | Predicted %Cap: {row['Predicted_%Cap']:.2f} | "
+    f"Percentage Difference: {row['Percentage_Difference']:.2f}"
+)
     if most_overpaid is not None and row['Player'] == most_overpaid['Player']:
         print(f"**MOST OVERPAID**: {player_info}")
     elif most_underpaid is not None and row['Player'] == most_underpaid['Player']:
@@ -145,4 +156,76 @@ plt.legend()
 
 # Display the chart
 plt.tight_layout()
+plt.show()
+
+# Load the player dataset
+player_data = pd.read_csv('players.csv')
+
+# Add the image path for each player
+image_dir = 'img'
+player_data['image_path'] = player_data['playerid'].apply(lambda x: os.path.join(image_dir, str(x) + '.png'))
+
+
+# Assuming `merged_df` contains your salary and stats data
+merged_df['Full_Name'] = merged_df['Player']  # Ensure names align
+player_data['Full_Name'] = player_data['fname'] + ' ' + player_data['lname']
+
+# Merge datasets on Full_Name
+merged_with_images = pd.merge(merged_df, player_data[['Full_Name', 'image_path']], on='Full_Name', how='inner')
+print(merged_with_images.head())
+
+def add_face(ax, x, y, image_path):
+    try:
+        img = plt.imread(image_path)
+        imagebox = OffsetImage(img, zoom=0.1)  # Adjust zoom for image size
+        ab = AnnotationBbox(imagebox, (x, y), frameon=False)
+        ax.add_artist(ab)
+    except FileNotFoundError:
+        print(f"Image not found: {image_path}")
+
+# Create scatter plot
+fig, ax = plt.subplots(figsize=(12, 8))
+ax.plot([0, 5e7], [0, 5e7], color='red', linestyle='--')  # Diagonal line for reference
+
+# Add images for each player
+for _, row in merged_with_images.iterrows():
+    add_face(ax, row['Salary'], row['Predicted_Salary'], row['image_path'])
+
+# Customize plot
+plt.xlabel('Actual Salary ($)', fontsize=12)
+plt.ylabel('Predicted Salary ($)', fontsize=12)
+plt.title('Actual vs Predicted Salary with Player Images', fontsize=14)
+plt.tight_layout()
+
+# Show plot
+plt.show()
+
+
+def add_face_with_name(ax, x, y, image_path, name):
+    try:
+        img = plt.imread(image_path)
+        imagebox = OffsetImage(img, zoom=0.15)  # Increased zoom level for better visibility
+        ab = AnnotationBbox(imagebox, (x, y), frameon=False)
+        ax.add_artist(ab)
+    except FileNotFoundError:
+        print(f"Image not found: {image_path}")
+
+# Create scatter plot
+fig, ax = plt.subplots(figsize=(14, 10))
+ax.plot([0, 5e7], [0, 5e7], color='red', linestyle='--')  # Diagonal line for reference
+
+# Add grid layout
+ax.grid(True, which='both', linestyle='--', linewidth=0.5, alpha=0.7)
+
+# Add images and names for each player
+for _, row in merged_with_images.iterrows():
+    add_face_with_name(ax, row['Salary'], row['Predicted_Salary'], row['image_path'], row['Player'])
+
+# Customize plot
+plt.xlabel('Actual Salary ($)', fontsize=12)
+plt.ylabel('Predicted Salary ($)', fontsize=12)
+plt.title('Actual vs Predicted Salary with Player Images and Names', fontsize=14)
+plt.tight_layout()
+
+# Show plot
 plt.show()
