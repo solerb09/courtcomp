@@ -22,6 +22,13 @@ salaries_2022_2023 = salaries[["Player", "2022/2023"]]
 # Merge the datasets on the Player column
 merged_df = pd.merge(stats, salaries_2022_2023, on="Player", how="inner")
 
+
+
+
+
+# show luka doncic on merged df
+
+
 # Clean up and prepare the Salary column
 merged_df.rename(columns={'2022/2023': 'Salary'}, inplace=True)
 merged_df["Salary"] = (
@@ -36,7 +43,6 @@ salary_cap = 123655000  # NBA salary cap for 2022-2023
 merged_df["%Cap"] = (merged_df["Salary"] / salary_cap) * 100
 
 # Drop rows with missing values
-merged_df.dropna(inplace=True)
 
 # Feature engineering
 merged_df["PTS_per_Min"] = merged_df["PTS"] / merged_df["Min"]
@@ -52,8 +58,11 @@ merged_df = merged_df[merged_df["Min"] > 1000]
 features = ["Age", "Min", "Weighted_Efficiency", "PTS_per_Min", "3PM", "3PA", "3P%", "FT%",
             "REB", "AST", "STL", "BLK", "PF", "DBPM", "+/-"]
 
+merged_df.dropna(subset=features, inplace=True)  # Drop rows with missing values in selected features
+
 X = merged_df[features]
 y = merged_df["%Cap"]  # Predict % of Salary Cap instead of raw salary
+
 
 # Standardize the features
 scaler = StandardScaler()
@@ -98,8 +107,8 @@ merged_df["Percentage_Difference"] = ((merged_df["Salary"] - merged_df["Predicte
 merged_df = merged_df.drop_duplicates(subset=["Player"], keep="first")
 
 # Highlight Most Overpaid and Underpaid Players
-overpaid = merged_df[merged_df["Value_Difference"] > 0].sort_values(by="Value_Difference", ascending=False)
-underpaid = merged_df[merged_df["Value_Difference"] < 0].sort_values(by="Value_Difference")
+overpaid = merged_df[merged_df["Value_Difference"] > 0].sort_values(by="Value_Difference" ,ascending=False)
+underpaid = merged_df[merged_df["Value_Difference"] < 0].sort_values(by="Value_Difference", ascending=True)
 
 most_overpaid = overpaid.iloc[0] if not overpaid.empty else None
 most_underpaid = underpaid.iloc[0] if not underpaid.empty else None
@@ -114,9 +123,9 @@ for index, row in merged_df.iterrows():
     f"Percentage Difference: {row['Percentage_Difference']:.2f}"
 )
     if most_overpaid is not None and row['Player'] == most_overpaid['Player']:
-        print(f"**MOST OVERPAID**: {player_info}")
+        print(f"**OVERPAID**: {player_info}")
     elif most_underpaid is not None and row['Player'] == most_underpaid['Player']:
-        print(f"**MOST UNDERPAID**: {player_info}")
+        print(f"**UNDERPAID**:  {player_info}")
     else:
         print(player_info)
 
