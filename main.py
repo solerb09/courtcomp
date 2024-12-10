@@ -1,4 +1,4 @@
-#importing libraries needed for applic
+#importing libraries needed for application
 
 import pandas as pd
 from sklearn.preprocessing import StandardScaler
@@ -12,7 +12,7 @@ from matplotlib.offsetbox import OffsetImage, AnnotationBbox
 import os
 """
 
-BRANDON
+LOADING DATASETS and creating a dataframe: BRANDON
 
 """
 # Load datasets
@@ -39,7 +39,7 @@ merged_df["Salary"] = (
 )
 """
 
-QUIN
+DETERMINING SALARY CAP: QUIN
 
 """
 # Calculate % of Salary Cap
@@ -172,15 +172,12 @@ plt.title("Actual vs Predicted Salary")
 plt.show()
 
 
+'''SAMPLE DATA: QUIN'''
 
-'''
-    DELETE
-'''
-# Sample data
 data = {
-    'Player': ['Jayson Tatum', 'Joel Embiid', 'Shai Gilgeous-Alexander', 'Giannis Antetokounmpo', 'Anthony Edwards'],
-    'Actual Salary': [30351780, 33616770, 30913750, 42492492, 10733400],
-    'Predicted Salary': [29870519.27, 35137593.69, 29852785.34, 39451985.21, 12314104.53]
+    'Player': ['Jayson Tatum', "De'Aaron Fox", 'Kevin Durant', 'Mikal Bridges', 'Donovan Mitchell'],
+    'Actual Salary': [30351780, 30351780, 44119845, 20100000, 30913750],
+    'Predicted Salary': [30284183, 30345448.62, 43711433.10, 20199387.40, 30723101]
 }
 df = pd.DataFrame(data)
 
